@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import re
 
 
@@ -39,7 +40,7 @@ def concatenate_column_names(row):
     return " ".join(text_parts)
 
 
-def preprocess_pipeline(
+def cleaning_pipeline(
     df, name_data, column_to_extract: str, column_to_drop: list = []
 ):
 
@@ -68,6 +69,11 @@ def preprocess_pipeline(
     )
 
     # Suppression des colonnes redondantes et création de la colonne "texte"
-    final_data["texte"] = final_data.apply(concatenate_column_names, axis=1)
+    #final_data["texte"] = final_data.apply(concatenate_column_names, axis=1)
+    final_data = final_data.replace({None: np.nan})
+    final_data["age"] = pd.to_numeric(final_data["age"], errors="coerce")
+    final_data["birth_date"] = pd.to_numeric(
+        final_data["birth_date"], errors="coerce"
+    )
 
     return final_data
