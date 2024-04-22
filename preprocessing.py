@@ -1,6 +1,12 @@
 import pandas as pd
 import numpy as np
 import re
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+)
 
 
 def extract_groundtruth(df, column_to_extract):
@@ -36,7 +42,7 @@ def concatenate_column_names(row):
     text_parts = []
     for col_name, value in row.iteritems():
         if pd.notna(value) and value != "None":
-            text_parts.append(f"{col_name}_{value}")
+            text_parts.append(f"{col_name} : {value}")
     return " ".join(text_parts)
 
 
@@ -57,23 +63,35 @@ def cleaning_pipeline(
     preprocessed_data = data.drop([column_to_extract], axis=1)
 
     # Conversion des prénoms en minuscules
-    preprocessed_data["firstname"] = preprocessed_data["firstname"].str.lower()
+    preprocessed_data["prénom"] = preprocessed_data["prénom"].str.lower()
 
     # Jointure avec les données de nom
     final_data = pd.merge(
         preprocessed_data,
         name_data,
-        left_on=["firstname"],
-        right_on=["firstname"],
+        left_on=["prénom"],
+        right_on=["prénom"],
         how="left",
     )
 
     # Suppression des colonnes redondantes et création de la colonne "texte"
-    #final_data["texte"] = final_data.apply(concatenate_column_names, axis=1)
+    # final_data["texte"] = final_data.apply(concatenate_column_names, axis=1)
     final_data = final_data.replace({None: np.nan})
-    final_data["age"] = pd.to_numeric(final_data["age"], errors="coerce")
-    final_data["birth_date"] = pd.to_numeric(
-        final_data["birth_date"], errors="coerce"
-    )
 
     return final_data
+
+
+def calculate_scores(y_true, y_pred, label):
+    accuracy = accuracy_score(y_true, y_pred)
+    precision = precision_score(y_true, y_pred, pos_label=label)
+    recall = recall_score(y_true, y_pred, pos_label=label)
+    f1 = f1_score(y_true, y_pred, pos_label=label)
+
+    scores_dict = {
+        "Accuracy": accuracy,
+        "Precision": precision,
+        "Recall": recall,
+        "F1 Score": f1,
+    }
+
+    return pd.DataFrame(scores_dict, index=[label])
