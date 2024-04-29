@@ -17,10 +17,20 @@ from transformers import (
     DistilBertTokenizer,
     DistilBertForSequenceClassification,
 )
-from sklearn.metrics import accuracy_score, f1_score
 from transformers import AdamW
 
+
 def extract_groundtruth(df, column_to_extract):
+    """
+    Extrait les données de groundtruth de la colonne spécifiée du DataFrame.
+
+    Args:
+        df (DataFrame): DataFrame contenant les données.
+        column_to_extract (str): Nom de la colonne à extraire.
+
+    Returns:
+        DataFrame: DataFrame contenant les données extraites.
+    """
     # Créer un ensemble vide pour stocker les noms de colonnes uniques
     unique_columns = set()
 
@@ -50,6 +60,15 @@ def extract_groundtruth(df, column_to_extract):
 
 
 def concatenate_column_names(row):
+    """
+    Concatène les noms de colonnes et les valeurs d'une ligne en une seule chaîne de texte.
+
+    Args:
+        row (Series): Ligne du DataFrame.
+
+    Returns:
+        str: Chaîne de texte contenant les noms de colonnes et leurs valeurs.
+    """
     text_parts = []
     for col_name, value in row.iteritems():
         if pd.notna(value) and value != "None":
@@ -60,7 +79,19 @@ def concatenate_column_names(row):
 def cleaning_pipeline(
     df, name_data, column_to_extract: str, column_to_drop: list = []
 ):
+    """
+    Nettoie les données en extrayant les données de groundtruth, en fusionnant les colonnes,
+    et en effectuant d'autres traitements préliminaires.
 
+    Args:
+        df (DataFrame): DataFrame contenant les données.
+        name_data (DataFrame): DataFrame contenant les données de noms.
+        column_to_extract (str): Nom de la colonne à extraire.
+        column_to_drop (list, optional): Liste des colonnes à supprimer. Par défaut, [].
+
+    Returns:
+        DataFrame: DataFrame contenant les données nettoyées.
+    """
     data = df.copy()
     data = data.drop(column_to_drop, axis=1)
     # Extraction des données groundtruth
@@ -91,6 +122,17 @@ def cleaning_pipeline(
 
 
 def calculate_scores(y_true, y_pred, label):
+    """
+    Calcule les scores de performance du modèle.
+
+    Args:
+        y_true (array-like): Valeurs réelles.
+        y_pred (array-like): Valeurs prédites.
+        label (str): Étiquette de classe pour le calcul des scores.
+
+    Returns:
+        DataFrame: DataFrame contenant les scores calculés.
+    """
     accuracy = accuracy_score(y_true, y_pred)
     precision = precision_score(y_true, y_pred, pos_label=label)
     recall = recall_score(y_true, y_pred, pos_label=label)
@@ -118,7 +160,24 @@ def train_model(
     learning_rate=2e-5,
     batch_size=16,
 ):
+    """
+    Entraîne un modèle de classification sur les données.
 
+    Args:
+        X_train (DataFrame): Données d'entraînement.
+        X_val (DataFrame): Données de validation.
+        X_test (DataFrame): Données de test.
+        train_targets (array-like): Étiquettes d'entraînement.
+        val_targets (array-like): Étiquettes de validation.
+        test_targets (array-like): Étiquettes de test.
+        model_type (str, optional): Type de modèle à utiliser. Par défaut, "bert".
+        num_epochs (int, optional): Nombre d'époques d'entraînement. Par défaut, 4.
+        learning_rate (float, optional): Taux d'apprentissage. Par défaut, 2e-5.
+        batch_size (int, optional): Taille des lots. Par défaut, 16.
+
+    Returns:
+        None
+    """
     # Sélection du tokenizer et du modèle en fonction du type spécifié
     if model_type == "bert":
         tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
