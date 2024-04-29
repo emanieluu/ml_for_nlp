@@ -85,8 +85,6 @@ def cleaning_pipeline(
         how="left",
     )
 
-    # Suppression des colonnes redondantes et création de la colonne "texte"
-    # final_data["texte"] = final_data.apply(concatenate_column_names, axis=1)
     final_data = final_data.replace({None: np.nan})
 
     return final_data
